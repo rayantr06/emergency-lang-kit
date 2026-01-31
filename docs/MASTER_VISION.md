@@ -2,7 +2,7 @@
 ## "The WordPress of Emergency AI — A Modular Platform for Certified Intelligence"
 
 > **Purpose:** This document consolidates EVERY idea discussed for the ELK project.
-> **Target:** Arcadion Technical Directors seeking an enterprise-grade, scalable AI solution.
+> **Target:** Technical Directors seeking an enterprise-grade, scalable AI solution.
 
 ---
 
@@ -212,7 +212,7 @@ services:
 
 ---
 
-# SUMMARY: The Value Proposition for Arcadion
+# SUMMARY: The Value Proposition for Enterprise
 
 | Feature                 | What it proves                                  |
 | :---------------------- | :---------------------------------------------- |
