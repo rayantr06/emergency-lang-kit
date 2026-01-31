@@ -1,0 +1,17 @@
+[
+    {
+        "instruction": "Extraire les entités structurées (Lieu, Type d'incident, Urgence, Victimes) de cette transcription d'appel d'urgence en Kabyle/Français.",
+        "input": "A: ... (bruit)...llo ?! Aḍu ! Aḍu d ameqqran !\nO: Allo ? Je vous reçois mal. Parlez fort !\nA: Ttejra... (bruit)... Ttejra teɣli-d ɣef t... (bruit)...omobil !\nO: Une voiture ? Où ça exactement ?\nA: Di Tarzout ! ... (bruit)...tention ! Le poteau électrique... (bruit)... !",
+        "output": "{\"lieu_final\": \"Tarzout, Oued Ghir\", \"commune\": \"Oued Ghir\", \"quartier\": \"Tarzout\", \"repere\": \"Arrêt de bus terminus, Salle des fêtes, vers Bouhoual\", \"type_incident\": \"Accident / Intempéries\", \"niveau_urgence\": \"critique\", \"nombre_victimes\": \"0\", \"etat_victimes\": \"Inconnu (Chaos)\", \"notes\": \"Scenario CHARGE : Grêle + Haché (Packet Loss). Hard Negative.\"}"
+    },
+    {
+        "instruction": "Extraire les entités structurées (Lieu, Type d'incident, Urgence, Victimes) de cette transcription d'appel d'urgence en Kabyle/Français.",
+        "input": "O: Azul. A: Azul. accident di acherchour.",
+        "output": "{\"lieu_final\": \"acherchour, Béjaïa\", \"type_incident\": \"accident\", \"niveau_urgence\": \"normal\", \"notes\": \"Standard Backup\"}"
+    },
+    {
+        "instruction": "Extraire les entités structurées (Lieu, Type d'incident, Urgence, Victimes) de cette transcription d'appel d'urgence en Kabyle/Français.",
+        "input": "A: ...llo ?! Aḍu ! Aḍu d ameqqran !\nO: Allo ? Je vous reçois mal. Parlez fort !\nA: Ttejra... Ttejra teɣli-d ɣef t...omobil !\nO: Une voiture ? Où ça exactement ?\nA: Di Tarzout ! ...tention ! Le poteau électrique... !",
+        "output": "{\"lieu_final\": \"Tarzout, Oued Ghir\", \"commune\": \"Oued Ghir\", \"quartier\": \"Tarzout\", \"repere\": \"Arrêt de bus terminus, Salle des fêtes, vers Bouhoual\", \"type_incident\": \"Accident / Intempéries\", \"niveau_urgence\": \"critique\", \"nombre_victimes\": \"5\", \"etat_victimes\": \"Inconnu (Chaos)\", \"notes\": \"Scenario CHARGE : Vent violent (90km/h) + Robotique (Jitter). Hard Negative.\"}"
+    }
+]

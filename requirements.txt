@@ -1,0 +1,32 @@
+# Core
+pydantic>=2.0
+python-dotenv
+
+# API Layer (FastAPI)
+fastapi
+uvicorn[standard]
+python-multipart
+
+# UI Layer (Streamlit)
+streamlit
+watchdog
+
+# AI/ML Engines (Optimized)
+torch --index-url https://download.pytorch.org/whl/cu118
+transformers
+accelerate
+bitsandbytes
+scipy
+soundfile
+librosa
+
+# Google Gemini
+google-generativeai
+
+# OpenAI Whisper
+openai-whisper
+
+# Utilities
+requests
+pyyaml
+tqdm

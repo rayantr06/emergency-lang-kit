@@ -1,0 +1,35 @@
+version: '3.9'
+
+services:
+  # 🔌 Backend API (The Brain)
+  elk-api:
+    build: .
+    container_name: elk_brain_api
+    command: uvicorn elk.server.app:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    restart: unless-stopped
+
+  # 📊 Frontend UI (The Interface)
+  elk-ui:
+    build: .
+    container_name: elk_factory_ui
+    command: streamlit run elk/factory/assistants/annotate_app.py --server.port 8501 --server.address 0.0.0.0
+    volumes:
+      - .:/app
+    ports:
+      - "8501:8501"
+    environment:
+      - BACKEND_URL=http://elk-api:8000
+    depends_on:
+      - elk-api
+
+  # 🚀 (Future) Vector DB
+  # chroma:
+  #   image: chromadb/chroma
+  #   ports:
+  #     - "8001:8000"
