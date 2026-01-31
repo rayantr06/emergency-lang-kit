@@ -2,12 +2,11 @@
 ## "The WordPress of Emergency AI — A Modular Platform for Certified Intelligence"
 
 > **Purpose:** This document consolidates EVERY idea discussed for the ELK project.
-> **Target:** Technical Directors seeking an enterprise-grade, scalable AI solution.
+> **Target:** Arcadion Technical Directors seeking an enterprise-grade, scalable AI solution.
 
 ---
 
-# PART 1: THE CORE PHILOSOPHY
-**"The Factory, Not Just The Car"**
+# PART 1: THE CORE IDEA
 
 ## 1.1 The Problem We Solve
 Emergency calls are a data goldmine that is currently **wasted**.
