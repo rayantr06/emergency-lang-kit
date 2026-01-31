@@ -76,7 +76,7 @@ graph LR
     *   **Local:** Llama 3 via Ollama (Privacy / Air-Gapped).
 
 ### Stage D: Validator (The Judge)
-*   **Rule:** LLM output MUST be pure JSON matching `core/interfaces.py`.
+*   **Rule:** LLM output MUST be pure JSON matching `elk/kernel/schemas/interfaces.py`.
 *   **No Markdown.** No "I think...". Just data.
 
 ### Stage E: Calculator (The Scorer)

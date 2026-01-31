@@ -1,7 +1,7 @@
 # 📋 Product Requirements Document (PRD)
 ## Project: Emergency Lang Kit (ELK)
 
-> **Document Status:** DRAFT 2.0 (Full Vision)
+> **Document Status:** ACTIVE DEVELOPMENT (Implementation Phase)
 > **Target Audience:** Technical Directors, Civil Protection Stakeholders
 > **Vision:** "To provide an Open Source Factory that enables any community to build its own Intelligent Emergency Response System."
 
@@ -38,7 +38,7 @@ We don't just fish; we give communities the rod.
     *   Must query a local Vector DB (Chroma/FAISS) *before* LLM inference.
     *   *Data:* Must index specific "Knowledge Packs" (e.g., PDF Manuals, GeoJSON layers).
 *   **FR-03 Strict Deterministic Output (JSON Schema):**
-    *   **NO Markdown/Text:** The LLM must output *pure JSON* validated against `core/interfaces.py`.
+    *   **NO Markdown/Text:** The LLM must output *pure JSON* validated against `elk/kernel/schemas/interfaces.py`.
     *   **Structure:** Must strictly adhere to ensuring `incident_type` is an Enum, not a string.
 
 ### 3.2 The Dynamic Engine (Logic & Validation)
