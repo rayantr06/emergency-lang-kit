@@ -5,7 +5,7 @@ Universal Emergency Ontology
 
 from enum import Enum
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, computed_field
+from pydantic import BaseModel, Field, computed_field, ConfigDict
 from datetime import datetime
 
 # 1. Standard Enums (Universal)
@@ -77,5 +77,4 @@ class EmergencyCall(BaseModel):
     needs_review: bool = False
     review_reason: Optional[str] = None
 
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
