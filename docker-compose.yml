@@ -1,23 +1,54 @@
 version: '3.9'
 
 services:
-  # 🔌 Backend API (The Brain)
+  # 🧠 Redis (Message Broker & Cache)
+  redis:
+    image: redis:alpine
+    container_name: elk_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+  # 🔌 Backend API (Gateway)
   elk-api:
     build: .
-    container_name: elk_brain_api
-    command: uvicorn elk.server.app:app --host 0.0.0.0 --port 8000 --reload
+    container_name: elk_api
+    command: uvicorn elk.api.app:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - .:/app
+      - audio_uploads:/tmp/elk/uploads
     ports:
       - "8000:8000"
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  # 👷 Async Worker (Heavy Lifting)
+  elk-worker:
+    build: .
+    container_name: elk_worker
+    command: python -m elk.workers.main
+    volumes:
+      - .:/app
+      - audio_uploads:/tmp/elk/uploads
+      - ./ml_pipeline:/app/ml_pipeline # Model access
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+      - elk-api
     restart: unless-stopped
 
   # 📊 Frontend UI (The Interface)
   elk-ui:
     build: .
-    container_name: elk_factory_ui
+    container_name: elk_ui
     command: streamlit run elk/factory/assistants/annotate_app.py --server.port 8501 --server.address 0.0.0.0
     volumes:
       - .:/app
@@ -28,8 +59,6 @@ services:
     depends_on:
       - elk-api
 
-  # 🚀 (Future) Vector DB
-  # chroma:
-  #   image: chromadb/chroma
-  #   ports:
-  #     - "8001:8000"
+volumes:
+  redis_data:
+  audio_uploads:

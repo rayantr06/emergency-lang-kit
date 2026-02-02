@@ -1,0 +1,88 @@
+# DZ-KAB Protection - Business Rules
+# Decision Logic for Emergency Dispatch
+
+# Rule Engine Version
+version: "1.0.0"
+
+# Urgency Classification Rules
+urgency_rules:
+  - name: "fire_high_urgency"
+    condition:
+      incident_type: "FIRE"
+    action:
+      set_urgency: "HIGH"
+      auto_dispatch: true
+      units: ["pompiers", "ambulance"]
+
+  - name: "drowning_critical"
+    condition:
+      incident_type: "DROWNING"
+    action:
+      set_urgency: "CRITICAL"
+      auto_dispatch: true
+      units: ["secours_aquatique", "ambulance", "pompiers"]
+
+  - name: "traffic_with_victims"
+    condition:
+      incident_type: "TRAFFIC_ACCIDENT"
+      victims_count: "> 0"
+    action:
+      set_urgency: "HIGH"
+      auto_dispatch: true
+      units: ["ambulance", "police"]
+
+  - name: "medical_emergency"
+    condition:
+      incident_type: "MEDICAL"
+      keywords_present:
+        - "cardiaque"
+        - "AVC"
+        - "inconscient"
+    action:
+      set_urgency: "CRITICAL"
+      auto_dispatch: true
+      units: ["SAMU", "ambulance"]
+
+  - name: "collapse_building"
+    condition:
+      incident_type: "COLLAPSE"
+    action:
+      set_urgency: "CRITICAL"
+      auto_dispatch: true
+      units: ["protection_civile", "pompiers", "ambulance"]
+
+  - name: "gas_leak"
+    condition:
+      incident_type: "GAS_LEAK"
+    action:
+      set_urgency: "HIGH"
+      auto_dispatch: true
+      units: ["pompiers", "sonelgaz"]
+      evacuate: true
+
+# Location Validation Rules
+location_rules:
+  - name: "known_commune_bonus"
+    condition:
+      location.commune: "IN_LEXICON"
+    action:
+      confidence_bonus: 0.1
+      
+  - name: "unknown_location_review"
+    condition:
+      location.commune: "NOT_FOUND"
+    action:
+      needs_human_review: true
+      review_reason: "Location non identifiée"
+
+# Human Review Triggers
+human_review_triggers:
+  - low_confidence: true
+    threshold: 0.70
+    
+  - incident_type: "UNKNOWN"
+    
+  - urgency: "UNKNOWN"
+    
+  - conflicting_info: true
+    description: "Urgency CRITICAL but no victims"

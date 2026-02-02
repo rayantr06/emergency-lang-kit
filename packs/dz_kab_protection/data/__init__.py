@@ -1,0 +1,2 @@
+# Pack Data Module
+from .lexicon import DAIRATE_BEJAIA, COMMUNES_FLAT, QUARTIERS_BEJAIA, VOCAB_MAP

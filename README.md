@@ -1,155 +1,193 @@
 # 🚨 Emergency Lang Kit (ELK)
 
-> **Production-ready framework for building intelligent emergency call systems in any language.**
+> **Asynchronous AI Kernel for Emergency Call Analysis**  \
+> *Hardened prototype suitable for portfolio/demo use.*
+
+![ELK Hero](https://github.com/rayantr06/emergency-lang-kit/raw/main/docs/img/elk_hero_dashboard.png)
+*(Note: Replace with your actual hosted image path or keep it as artifact reference)*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](docs/)
-[![Status](https://img.shields.io/badge/status-implementation%20phase-green.svg)]()
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)]()
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)]()
+[![Status](https://img.shields.io/badge/status-hardened--prototype-blue.svg)]()
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 ---
 
-## 🌍 The Problem
+## 🌍 The Mission
 
-Emergency services worldwide face critical challenges:
-- **Language barriers** (immigrants, tourists, multilingual regions).
-- **Inconsistent call handling** (human error, stress, fatigue).
-- **No structured traceability** (legal issues, quality assurance).
-- **Impossible to scale** (custom solutions per region).
+In high-stakes emergency situations, every second counts. Language barriers (dialects like Kabyle or Arabizi) and high call volume can cripple existing systems. 
 
-**Emergency Lang Kit (ELK)** solves this through a modular, language-agnostic architecture.
+**ELK (Emergency Lang Kit)** is a modular, decentralized AI kernel designed to:
+1.  **Transcribe & Translate** complex multilingual emergency calls in real-time.
+2.  **Extract Intent** using schema-enforced LLM inference for 100% data reliability.
+3.  **Dispatch** structured intelligence to ERP/CAD systems via an asynchronous, resilient pipeline.
+
+> **"Decentralizing Emergency Intelligence to save lives through modular AI."**
 
 ---
 
-## ✨ Key Innovation
+## 🛡️ Hardening Résumé
 
-Unlike monolithic emergency systems, ELK is built on a **Kernel + Plugins** architecture:
+Actions mises en place pour sécuriser et rendre l’ingestion plus robuste :
+- **Sécurité** : Auth par `X-API-Key` (configurable), CORS/AllowedHosts restreints.
+- **Résilience** : Backpressure sur Redis (`MAX_QUEUE_SIZE` + 429), timeouts d’accès queue.
+- **Traçabilité** : `correlation_id` propagé API → worker → connector.
+- **Validation** : Contrôle base64/MIME avant écriture disque, limite de taille, nettoyage TTL en tâche de fond.
+- **Ops** : Docker non-root (`elkuser`), health check étendu (Redis/DB), script de démo prêt.
+
+---
+
+## 📐 Architecture
+
+ELK uses a state-of-the-art async pipeline to handle massive ingestion loads without blocking the main event loop.
 
 ```mermaid
+graph LR
+    Client -->|REST| API[FastAPI Gateway]
+    API -->|Enqueue| Redis[(Redis Broker)]
+    API -.->|Read| DB[(SQL DB)]
+    
+    subgraph "Worker Cluster"
+        Worker[Arq Worker] -->|Poll| Redis
+        Worker -->|Update| DB
+        Worker -->|Run| Pipeline[ELK Engine]
+    end
+    
+    Worker -->|Push| ERP[Mock ERP / Webhook]
+```
+
+### Key Components
+- **FastAPI Gateway**: stateless, high-performance ingestion layer.
+- **Arq Workers**: Distributed task execution with built-in retry logic.
+- **SQLModel Orchestrator**: Real-time job state tracking and performance metrics.
+- **ELK Engine**: Multi-modal pipeline (Whisper + Gemini + RAG).
+
+### Functional Topology
+```mermaid
 graph TD
-    Kernel[⚙️ ELK KERNEL (Universal)] --> Packs[📦 Language Packs]
-    Kernel --> Plugins[🔌 Tool Plugins]
+    subgraph KERNEL["⚙️ The Immutable Core"]
+        Pipeline[Kinetic Pipeline]
+        Ontology[Pydantic Schemas]
+        Analytics[Data Warehouse]
+    end
+
+    subgraph FACTORY["🏭 The Factory Tools"]
+        Scaffold[elk scaffold]
+        Annotate[elk annotate]
+        Extract[elk extract]
+    end
+
+    subgraph PACKS["📦 Domain Packs"]
+        P1[Kabyle Firefighters]
+        P2[Gatineau Health]
+        P3[Cree Police]
+    end
+
+    FACTORY -- "Generates" --> PACKS
+    PACKS -- "Plugins Into" --> KERNEL
 ```
 
-### **1. Kernel** (Universal)
-Core logic that works for ANY language:
-- **ASR Pipeline:** Whisper-based abstraction.
-- **Intent Extraction:** LLM-powered, schema-enforced.
-- **Decision Engine:** Multi-observer resonance logic.
-- **Audit:** Legal-grade traceability.
-
-### **2. Language Packs** (Pluggable)
-Pre-configured for supported languages (e.g., `fr-FR`, `ar-DZ`).
-- **ASR Models:** Fine-tuned Whisper adapters.
-- **Ontology:** Emergency Enums (Fire, Medical).
-- **Knowledge:** RAG base for protocols.
-
-### **3. Tool Plugins** (Extensible)
-- **Annotation Tool:** Web UI for transcription labeling.
-- **Analytics:** Post-call KPI dashboard.
-
----
-
-## 🎯 Design Principles
-
-1.  **Language-Agnostic Core:** Add new languages without changing the kernel.
-2.  **Schema-First:** Strict Pydantic validation (JSON) > Free text. **No hallucinations**.
-3.  **Human-in-the-Loop:** AI assists, humans decide on low-confidence cases.
-4.  **Audit-First:** Every decision is traceable to source evidence.
-
----
-
-## 📐 Architecture Overview
-
-ELK follows the **Language Layer** paradigm:
-
-```text
-Audio Input
-    ↓
-[ASR] Whisper (fine-tuned adapter)
-    ↓
-Transcription
-    ↓
-[Intent Extraction] LLM (schema-constrained)
-    ↓
-Structured Intent (JSON)
-    ↓
-[Decision Engine] Resonance Logic
-    ↓
-Decision Proposal
-    ↓
-[Validation] Human-in-the-Loop Check
-    ↓
-Final Decision & JSON Dispatch
-```
-
-[Read full architecture →](docs/architecture.md)
-
----
-
-## 🚀 Current Status
-
-**Phase:** Implementation & Verification
-
-**Completed:**
-- ✅ Core Architecture Definition
-- ✅ Kernel Interfaces & Contracts (`elk/kernel/schemas/`)
-- ✅ Language Pack Specification
-- ✅ Plugin System Design
-- ✅ PRD (Product Requirements Document)
-- ✅ **FastAPI Engine** (Core Server)
-- ✅ **Gemini 1.5 Integration** (Structured LLM)
-- ✅ **RAG Engine** (Lexical Search)
-- ✅ **Docker Ready** (Air-Gap Deployment)
-- ✅ **CI/CD Pipeline** (GitHub Actions)
-
-**In Progress:**
-- 🔨 Multi-modal support (Voice-to-JSON)
-- 🔨 Advanced Analytics Dashboard
-- 🔨 Extended Language Packs (French, Arabizi)
-
-[View detailed roadmap →](docs/roadmap.md)
-
----
-
-## 📚 Documentation
-
-- **[Vision](docs/vision.md)** - Why ELK exists and what it solves.
-- **[Architecture](docs/architecture.md)** - System design deep-dive.
-- **[Kernel Design](docs/kernel-design.md)** - Core components and interfaces.
-- **[Language Packs](docs/language-packs.md)** - How to create new language support.
-- **[Roadmap](docs/roadmap.md)** - Future plans.
-
----
-
-## 💡 Example Use Cases
-
-### Use Case 1: Emergency Call (France)
-```json
-{
-  "incident_type": "fire",
-  "urgency": "critical",
-  "location": {"type": "residence", "address": "12 rue de la Paix"},
-  "decision": "dispatch_fire_and_ambulance",
-  "confidence": 0.94
-}
+### Processing Pipeline (Audio → Decision)
+```mermaid
+graph LR
+    A((Audio)) --> B["👂 ASR + QLoRA"]
+    B --> C["📚 Hybrid RAG"]
+    C --> D{"☁️/💻 Cloud/Local LLM"}
+    D --> E["🛡️ JSON Validator"]
+    E --> F["🧮 Calculator"]
+    F -- Valid --> G["⚡ Decision Engine"]
+    F -- Invalid --> H["👨‍🚒 Human Loop"]
+    G --> I[("🗄️ Analytics DB")]
 ```
 
 ---
 
-## 🤝 Contributing
+## 🛠️ Tech Stack
 
-ELK is designed to be community-driven. Code contributions are not yet open as the kernel implementation is in active design phase.
-**Star ⭐ the repo to get notified when we open for contributions.**
-
----
-
-## 📜 License
-
-MIT License - see [LICENSE](LICENSE).
+- **Backend**: Python 3.10, FastAPI, SQLModel.
+- **Queue**: Redis, Arq (Asynchronous Distributed Tasks).
+- **AI/ML**: WhisperX (ASR), LLM (Gemini), ChromaDB (Vector Search).
+- **Ops**: Docker, Docker Compose; lint/format/type tooling (ruff/black/mypy).
 
 ---
 
-**Author:** [Your Name]
-*Building the future of Decentralized Emergency Intelligence.*
+## 🏗️ Quick Start
+
+### Prerequisites
+- Docker & Docker Compose
+
+### Run the Stack
+```bash
+docker-compose up --build
+```
+This spins up:
+- **ELK API**: `http://localhost:8000`
+- **Redis Broker**: `localhost:6379`
+- **Worker Node**: Background processor (Scale with `docker-compose up --scale elk-worker=3`)
+
+### Test the Pipeline
+```bash
+# Submit a transcription job (JSON/Base64)
+# Encoded dummy WAV: "UklGRiAAAABXQVZFRm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="
+curl -X POST "http://localhost:8000/jobs" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_secure_key" \
+  -d '{
+    "audio_base64": "UklGRiAAAABXQVZFRm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=",
+    "language_hint": "kab"
+  }'
+```
+
+---
+
+## 📈 Roadmap & Prochaines Étapes
+
+Pour passer d’un prototype durci à une posture “prod” :
+- **Identity & Access** : OIDC/mTLS, rate limiting/quotas côté edge.
+- **Observabilité** : OTel + métriques Prometheus (latence, queue depth, retries, états jobs) + alerting.
+- **Data Lifecycle** : Dead Letter Queue, idempotence des jobs/connectors.
+- **HA** : Redis/DB en HA, déploiement K8s avec HPA basé sur la profondeur de queue.
+- **Governance** : Hash/signature des packs/modèles, validation au démarrage, chiffrement des secrets/PII.
+
+---
+
+## 🧪 Verification & Demo
+
+Le projet inclut une suite de tests automatisés et un script de démonstration pour valider le durcissement :
+
+### Run Tests (Local)
+```bash
+python -m pytest tests/test_security_backpressure.py tests/test_api.py
+```
+*Consultez [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md) pour les preuves d'exécution.*
+
+### API Demo
+Un script client est disponible pour tester l'API avec authentification :
+```bash
+# Nécessite un serveur ELK actif (docker-compose up)
+python tools/demo_request.py
+```
+
+---
+
+## 📂 Repository Structure
+
+- `elk/api` - Stateless FastAPI Gateway.
+- `elk/workers` - Async Task Processors (Arq).
+- `elk/engine` - The AI Kernel core (Whisper, LLM, RAG).
+- `elk/connectors` - Enterprise integration layer.
+- `packs/` - Domain-specific language/rule configuration.
+- `docs/` - Comprehensive technical documentation.
+
+---
+
+## 🤝 Contributing & License
+
+We value professional workflow! Please check [CONTRIBUTING.md](CONTRIBUTING.md) for pull request guidelines.
+
+Licensed under the [MIT License](LICENSE).
+
+---
+**Author:** RayanTR  
+*Building robust AI systems for real-world impact.*

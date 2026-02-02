@@ -1,0 +1,181 @@
+{
+    "type": "FeatureCollection",
+    "metadata": {
+        "pack": "dz-kab-protection",
+        "region": "Wilaya de Bejaia",
+        "country": "DZ",
+        "updated": "2024-01-01"
+    },
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "type": "daira",
+                "name": "Béjaïa",
+                "name_ar": "بجاية",
+                "code": "06-01"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    5.0667,
+                    36.7500
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "type": "commune",
+                "name": "Akbou",
+                "name_ar": "أقبو",
+                "daira": "Akbou",
+                "code": "06-02"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    4.5333,
+                    36.4667
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "type": "commune",
+                "name": "Tichy",
+                "daira": "Tichy",
+                "code": "06-03"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    5.2000,
+                    36.7167
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "type": "commune",
+                "name": "Kherrata",
+                "name_ar": "خراطة",
+                "daira": "Kherrata",
+                "code": "06-04"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    5.2667,
+                    36.5000
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "type": "commune",
+                "name": "Sidi-Aich",
+                "daira": "Sidi-Aich",
+                "code": "06-05"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    4.6833,
+                    36.6167
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "type": "commune",
+                "name": "Amizour",
+                "daira": "Amizour",
+                "code": "06-06"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    4.9056,
+                    36.6417
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "type": "landmark",
+                "name": "Pic des Singes",
+                "category": "natural"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    5.0833,
+                    36.7583
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "type": "landmark",
+                "name": "Cap Carbon",
+                "category": "natural"
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    5.1167,
+                    36.7833
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "type": "route",
+                "name": "RN9",
+                "category": "national_road"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        4.5333,
+                        36.4667
+                    ],
+                    [
+                        5.0667,
+                        36.7500
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "type": "route",
+                "name": "RN24",
+                "category": "national_road"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        5.0667,
+                        36.7500
+                    ],
+                    [
+                        5.2667,
+                        36.5000
+                    ]
+                ]
+            }
+        }
+    ]
+}

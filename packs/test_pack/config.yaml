@@ -1,0 +1,30 @@
+# test-pack Pack Configuration
+pack:
+  name: "test-pack"
+  version: "0.1.0"
+  language: "fr"
+  domain: "medical"
+
+llm:
+  provider: "${LLM_PROVIDER:-gemini}"
+  cloud:
+    model: "gemini-1.5-flash"
+    api_key: "${GEMINI_API_KEY}"
+  local:
+    model: "${OLLAMA_MODEL:-llama3}"
+    base_url: "${OLLAMA_BASE_URL:-http://localhost:11434}"
+
+asr:
+  model: "${WHISPER_MODEL:-small}"
+  enable_alignment: true
+
+rag:
+  enable_vector: true
+  keyword_weight: 0.5
+  vector_weight: 0.5
+
+confidence:
+  asr_weight: 0.40
+  entity_weight: 0.35
+  rag_weight: 0.25
+  human_review_threshold: 0.70

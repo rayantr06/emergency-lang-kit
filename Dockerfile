@@ -34,5 +34,10 @@ COPY . .
 # Set Python Path to include root
 ENV PYTHONPATH=/app
 
+# Non-root user
+RUN addgroup --system elk && adduser --system --ingroup elk --home /app elkuser \
+    && chown -R elkuser:elk /app
+USER elkuser
+
 # Default Command (Overridden by Docker Compose)
-CMD ["uvicorn", "elk.server.app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "elk.api.app:app", "--host", "0.0.0.0", "--port", "8000"]

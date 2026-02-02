@@ -1,5 +1,6 @@
 # Core
 pydantic>=2.0
+pydantic-settings
 python-dotenv
 
 # API Layer (FastAPI)
@@ -23,10 +24,35 @@ librosa
 # Google Gemini
 google-generativeai
 
-# OpenAI Whisper
-openai-whisper
+# ASR Engine (WhisperX - faster than openai-whisper)
+whisperx
+noisereduce
+faster-whisper
 
 # Utilities
 requests
 pyyaml
 tqdm
+
+# Vector RAG (FR-02)
+chromadb
+sentence-transformers
+
+# Async Queue & Workers (Production)
+arq
+redis
+async-timeout
+
+# Database & ORM
+sqlmodel
+alembic
+asyncpg
+aiosqlite
+
+# Ops & Performance
+psutil
+orjson
+slowapi
+
+# Networking
+httpx

@@ -1,0 +1,65 @@
+# DZ-KAB Protection Pack Configuration
+# Emergency Lang Kit - Pack Settings
+# Language: Kabyle / French / Arabizi
+
+pack:
+  name: "dz-kab-protection"
+  version: "1.0.0"
+  language: "kab"  # ISO 639-3 Kabyle
+  region: "DZ-06"  # Bejaia Wilaya
+  domain: "civil_protection"
+
+# LLM Configuration (FR-06: Cloud/Local Toggle)
+llm:
+  provider: "${LLM_PROVIDER:-gemini}"  # gemini or ollama
+  cloud:
+    model: "gemini-1.5-flash"
+    api_key: "${GEMINI_API_KEY}"
+  local:
+    model: "${OLLAMA_MODEL:-llama3}"
+    base_url: "${OLLAMA_BASE_URL:-http://localhost:11434}"
+
+# ASR Configuration
+asr:
+  model: "${WHISPER_MODEL:-whisper-kabyle-dgpc-v6-ct2}"
+  device: "auto"  # auto, cuda, cpu
+  compute_type: "int8_float16"  # Optimized for speed
+  enable_alignment: true
+  batch_size: 16
+
+# RAG Configuration (FR-02: Vector/Hybrid)
+rag:
+  enable_vector: true
+  keyword_weight: 0.5
+  vector_weight: 0.5
+  collection_name: "dz_kab_knowledge"
+
+# Confidence Calculator (FR-04)
+confidence:
+  asr_weight: 0.40
+  entity_weight: 0.35
+  rag_weight: 0.25
+  human_review_threshold: 0.70
+
+# Schema Validation
+validation:
+  strict_mode: true
+  allow_unknown_types: false
+
+# Logging
+logging:
+  level: "INFO"
+  output: "jsonl"  # jsonl, console, both
+  audit_trail: true
+
+# Emergency-Specific Thresholds
+emergency:
+  high_urgency_keywords:
+    - "times"
+    - "incendie"
+    - "mort"
+    - "grave"
+    - "urgent"
+    - "noyade"
+  auto_dispatch_confidence: 0.85
+  max_response_time_seconds: 3
