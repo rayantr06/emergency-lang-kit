@@ -4,7 +4,7 @@
 > *Hardened prototype suitable for portfolio/demo use.*
 
 ![ELK Hero](https://github.com/rayantr06/emergency-lang-kit/raw/main/docs/img/elk_hero_dashboard.png)
-**
+
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
