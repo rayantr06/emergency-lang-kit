@@ -42,20 +42,7 @@ Actions mises en place pour sécuriser et rendre l’ingestion plus robuste :
 
 ELK uses a state-of-the-art async pipeline to handle massive ingestion loads without blocking the main event loop.
 
-```mermaid
-graph LR
-    Client -->|REST| API[FastAPI Gateway]
-    API -->|Enqueue| Redis[(Redis Broker)]
-    API -.->|Read| DB[(SQL DB)]
-    
-    subgraph "Worker Cluster"
-        Worker[Arq Worker] -->|Poll| Redis
-        Worker -->|Update| DB
-        Worker -->|Run| Pipeline[ELK Engine]
-    end
-    
-    Worker -->|Push| ERP[Mock ERP / Webhook]
-```
+See [docs/architecture.md](docs/architecture.md)
 
 ### Key Components
 - **FastAPI Gateway**: stateless, high-performance ingestion layer.
@@ -64,42 +51,10 @@ graph LR
 - **ELK Engine**: Multi-modal pipeline (Whisper + Gemini + RAG).
 
 ### Functional Topology
-```mermaid
-graph TD
-    subgraph KERNEL["⚙️ The Immutable Core"]
-        Pipeline[Kinetic Pipeline]
-        Ontology[Pydantic Schemas]
-        Analytics[Data Warehouse]
-    end
-
-    subgraph FACTORY["🏭 The Factory Tools"]
-        Scaffold[elk scaffold]
-        Annotate[elk annotate]
-        Extract[elk extract]
-    end
-
-    subgraph PACKS["📦 Domain Packs"]
-        P1[Kabyle Firefighters]
-        P2[Gatineau Health]
-        P3[Cree Police]
-    end
-
-    FACTORY -- "Generates" --> PACKS
-    PACKS -- "Plugins Into" --> KERNEL
-```
+See [docs/topology.md](docs/topology.md)
 
 ### Processing Pipeline (Audio → Decision)
-```mermaid
-graph LR
-    A((Audio)) --> B["👂 ASR + QLoRA"]
-    B --> C["📚 Hybrid RAG"]
-    C --> D{"☁️/💻 Cloud/Local LLM"}
-    D --> E["🛡️ JSON Validator"]
-    E --> F["🧮 Calculator"]
-    F -- Valid --> G["⚡ Decision Engine"]
-    F -- Invalid --> H["👨‍🚒 Human Loop"]
-    G --> I[("🗄️ Analytics DB")]
-```
+See [docs/pipeline.md](docs/pipeline.md)
 
 ---
 
