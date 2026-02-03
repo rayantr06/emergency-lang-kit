@@ -1,8 +1,6 @@
 # 🚨 Emergency Lang Kit (ELK)
 
 > **Asynchronous AI Kernel for Emergency Call Analysis**  \
-> *Hardened prototype suitable for portfolio/demo use.*
-
 ![ELK Hero](https://github.com/rayantr06/emergency-lang-kit/raw/main/docs/img/elk_hero_dashboard.png)
 
 
