@@ -40,8 +40,6 @@ async def startup_event():
     logger.info(f"Initializing {settings.APP_NAME}...")
     await init_db()
     # Cache Redis pool globally on app state for performance
-    from arq import create_pool
-    from arq.connections import RedisSettings
     app.state.redis = await create_pool(RedisSettings.from_dsn(settings.REDIS_URL))
     logger.info("ELK API Ready.")
 
@@ -56,7 +54,6 @@ async def shutdown_event():
 async def health_check():
     """Detailed System Health Check."""
     import psutil
-    from elk.engine.models import get_transcription_cache
 
     # Simple system stats
     system_stats = {
@@ -83,8 +80,7 @@ async def health_check():
     except Exception:
         dependencies["database"] = "down"
     
-    # We don't load models here anymore, so no GPU/Registry stats 
-    # (Workers manage that)
+    # API Gateway doesn't manage models or cache - workers do
     
     return HealthResponse(
         status="healthy",
