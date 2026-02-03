@@ -44,17 +44,17 @@ ELK uses a state-of-the-art async pipeline to handle massive ingestion loads wit
 
 ```mermaid
 graph LR
-    Client -->|REST| API[FastAPI Gateway]
-    API -->|Enqueue| Redis[(Redis Broker)]
-    API -.->|Read| DB[(SQL DB)]
+    Client["🌐 Client"] -->|REST| API["⚡ FastAPI Gateway"]
+    API -->|Enqueue| Redis[("📦 Redis Broker")]
+    API -.->|Read| DB[("🗄️ SQL DB")]
 
-    subgraph "Worker Cluster"
-        Worker[Arq Worker] -->|Poll| Redis
+    subgraph Workers["👷 Worker Cluster"]
+        Worker["🔄 Arq Worker"] -->|Poll| Redis
         Worker -->|Update| DB
-        Worker -->|Run| Pipeline[ELK Engine]
+        Worker -->|Run| Pipeline["🧠 ELK Engine"]
     end
 
-    Worker -->|Push| ERP[Mock ERP / Webhook]
+    Worker -->|Push| ERP["🏢 ERP / Webhook"]
 ```
 
 ### Key Components
@@ -67,22 +67,22 @@ graph LR
 
 ```mermaid
 graph TD
-    subgraph KERNEL["The Immutable Core"]
-        Pipeline[Kinetic Pipeline]
-        Ontology[Pydantic Schemas]
-        Analytics[Data Warehouse]
+    subgraph KERNEL["⚙️ The Immutable Core"]
+        Pipeline["🔀 Kinetic Pipeline"]
+        Ontology["📐 Pydantic Schemas"]
+        Analytics["📊 Data Warehouse"]
     end
 
-    subgraph FACTORY["The Factory Tools"]
-        Scaffold[elk scaffold]
-        Annotate[elk annotate]
-        Extract[elk extract]
+    subgraph FACTORY["🏭 The Factory Tools"]
+        Scaffold["🏗️ elk scaffold"]
+        Annotate["✏️ elk annotate"]
+        Extract["📤 elk extract"]
     end
 
-    subgraph PACKS["Domain Packs"]
-        P1[Kabyle Firefighters]
-        P2[Gatineau Health]
-        P3[Cree Police]
+    subgraph PACKS["📦 Domain Packs"]
+        P1["🚒 Kabyle Firefighters"]
+        P2["🏥 Gatineau Health"]
+        P3["👮 Cree Police"]
     end
 
     FACTORY -- "Generates" --> PACKS
@@ -93,14 +93,14 @@ graph TD
 
 ```mermaid
 graph LR
-    A((Audio)) --> B["ASR + QLoRA"]
-    B --> C["Hybrid RAG"]
-    C --> D{"Cloud/Local LLM"}
-    D --> E["JSON Validator"]
-    E --> F["Calculator"]
-    F -- Valid --> G["Decision Engine"]
-    F -- Invalid --> H["Human Loop"]
-    G --> I[("Analytics DB")]
+    A(("🎤 Audio")) --> B["👂 ASR + QLoRA"]
+    B --> C["📚 Hybrid RAG"]
+    C --> D{"☁️ Cloud/Local LLM"}
+    D --> E["🛡️ JSON Validator"]
+    E --> F["🧮 Calculator"]
+    F -- Valid --> G["⚡ Decision Engine"]
+    F -- Invalid --> H["👨‍🚒 Human Loop"]
+    G --> I[("📈 Analytics DB")]
 ```
 
 ---
