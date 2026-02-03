@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import asyncio
 from fastapi.testclient import TestClient
-from elk.server.app import app
+from elk.api.app import app
 
 client = TestClient(app)
 

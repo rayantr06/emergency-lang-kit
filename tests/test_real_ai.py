@@ -1,7 +1,7 @@
 import os
 import pytest
-from elk.kernel.ai.llm import LLMClient
-from elk.kernel.schemas.interfaces import EmergencyCall
+from elk.engine.ai.llm import LLMClient
+from elk.engine.schemas.interfaces import EmergencyCall
 
 # Skip if no API key
 @pytest.mark.skipif(not os.getenv("GEMINI_API_KEY"), reason="No Gemini API Key found")
