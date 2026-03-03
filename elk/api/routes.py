@@ -60,16 +60,19 @@ async def create_job(
     if queue_depth >= settings.MAX_QUEUE_SIZE:
         raise HTTPException(status_code=429, detail="Queue is full, retry later")
 
-    # 2. Save Audio File
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    # 2. Save Audio File (Offloaded to thread to avoid blocking event loop)
     file_path = os.path.join(settings.UPLOAD_DIR, f"{job_id}.wav")
 
     # Run cleanup in background to keep ingestion latency low
     background_tasks.add_task(_cleanup_old_uploads)
 
     try:
-        with open(file_path, "wb") as f:
-            f.write(audio_data)
+        def _save_audio():
+            os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+            with open(file_path, "wb") as f:
+                f.write(audio_data)
+
+        await asyncio.to_thread(_save_audio)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Storage error: {e}")
 
