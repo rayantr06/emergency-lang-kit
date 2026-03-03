@@ -10,8 +10,16 @@ Implements FastAPI best practices:
 import time
 import uuid
 import logging
-import json
+import asyncio
 from datetime import datetime
+
+# Use orjson for faster JSON serialization (with fallback)
+try:
+    import orjson
+    def json_dumps(obj): return orjson.dumps(obj, default=str).decode()
+except ImportError:
+    import json
+    def json_dumps(obj): return json.dumps(obj, ensure_ascii=False, default=str)
 from pathlib import Path
 from typing import Callable
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -41,15 +49,19 @@ class StructuredLogger:
         self.request_log = self.log_dir / f"requests_{today}.jsonl"
         self.error_log = self.log_dir / f"errors_{today}.jsonl"
         
-    def log_request(self, data: dict) -> None:
-        """Log request to JSONL file."""
-        with open(self.request_log, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(data, ensure_ascii=False, default=str) + '\n')
+    async def log_request(self, data: dict) -> None:
+        """Log request to JSONL file asynchronously."""
+        def sync_log():
+            with open(self.request_log, 'a', encoding='utf-8') as f:
+                f.write(json_dumps(data) + '\n')
+        await asyncio.to_thread(sync_log)
     
-    def log_error(self, data: dict) -> None:
-        """Log error to separate JSONL file."""
-        with open(self.error_log, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(data, ensure_ascii=False, default=str) + '\n')
+    async def log_error(self, data: dict) -> None:
+        """Log error to separate JSONL file asynchronously."""
+        def sync_log():
+            with open(self.error_log, 'a', encoding='utf-8') as f:
+                f.write(json_dumps(data) + '\n')
+        await asyncio.to_thread(sync_log)
 
 
 # Global logger instance
@@ -98,9 +110,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         
         # Log based on status
         if response.status_code >= 400:
-            _logger.log_error(log_entry)
+            await _logger.log_error(log_entry)
         else:
-            _logger.log_request(log_entry)
+            await _logger.log_request(log_entry)
         
         return response
 
@@ -193,7 +205,7 @@ def create_exception_handlers(app: FastAPI):
             "timestamp": datetime.now().isoformat()
         }
         
-        _logger.log_error({
+        await _logger.log_error({
             **error_detail,
             "path": str(request.url.path),
             "body_preview": str(exc.body)[:500] if exc.body else None
@@ -217,7 +229,7 @@ def create_exception_handlers(app: FastAPI):
             "timestamp": datetime.now().isoformat()
         }
         
-        _logger.log_error(error_detail)
+        await _logger.log_error(error_detail)
         
         return JSONResponse(
             status_code=exc.status_code,
@@ -239,7 +251,7 @@ def create_exception_handlers(app: FastAPI):
             "timestamp": datetime.now().isoformat()
         }
         
-        _logger.log_error(error_detail)
+        await _logger.log_error(error_detail)
         
         # Don't expose trace in response
         return JSONResponse(
