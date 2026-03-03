@@ -81,29 +81,40 @@ class TrainingDatabase:
     
     def add_sample(self, sample: TrainingSample) -> bool:
         """Add or update a training sample."""
+        return self.add_samples([sample])
+
+    def add_samples(self, samples: List[TrainingSample]) -> bool:
+        """Add or update multiple training samples in a single transaction."""
+        if not samples:
+            return True
         try:
-            self.conn.execute("""
+            data = [
+                (
+                    sample.audio_hash,
+                    sample.audio_path,
+                    sample.transcription_raw,
+                    sample.transcription_golden,
+                    json.dumps(sample.dialect_tags),
+                    1 if sample.is_test_set else 0,
+                    sample.quality_score,
+                    sample.created_at or datetime.now().isoformat(),
+                    sample.validated_by
+                )
+                for sample in samples
+            ]
+            self.conn.executemany("""
                 INSERT OR REPLACE INTO samples 
                 (audio_hash, audio_path, transcription_raw, transcription_golden,
                  dialect_tags, is_test_set, quality_score, created_at, validated_by)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                sample.audio_hash,
-                sample.audio_path,
-                sample.transcription_raw,
-                sample.transcription_golden,
-                json.dumps(sample.dialect_tags),
-                1 if sample.is_test_set else 0,
-                sample.quality_score,
-                sample.created_at or datetime.now().isoformat(),
-                sample.validated_by
-            ))
+            """, data)
             self.conn.commit()
             return True
         except Exception as e:
-            print(f"Error adding sample: {e}")
+            print(f"Error adding samples: {e}")
+            self.conn.rollback()
             return False
-    
+
     def get_training_set(
         self,
         min_quality: float = 0.5,
@@ -144,7 +155,7 @@ class TrainingDatabase:
     
     def import_from_jsonl(self, jsonl_path: str) -> int:
         """Import samples from JSONL file (from elk annotate)."""
-        imported = 0
+        samples_to_add = []
         with open(jsonl_path, 'r', encoding='utf-8') as f:
             for line in f:
                 try:
@@ -159,12 +170,13 @@ class TrainingDatabase:
                         quality_score=data.get('quality_score', 1.0),
                         validated_by=data.get('validated_by', 'unknown')
                     )
-                    if self.add_sample(sample):
-                        imported += 1
+                    samples_to_add.append(sample)
                 except Exception as e:
                     print(f"Skipping invalid line: {e}")
-        
-        return imported
+
+        if self.add_samples(samples_to_add):
+            return len(samples_to_add)
+        return 0
     
     def export_for_training(
         self,
@@ -187,7 +199,7 @@ class TrainingDatabase:
         # Mark test samples
         for sample in test_samples:
             sample.is_test_set = True
-            self.add_sample(sample)
+        self.add_samples(test_samples)
         
         train_path = Path(output_path) / "train.jsonl"
         test_path = Path(output_path) / "test.jsonl"
