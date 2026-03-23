@@ -3,21 +3,20 @@ ELK API Routes
 Handles Job creation and status retrieval.
 """
 
-import os
-import base64
-import uuid
 import asyncio
+import base64
+import os
 import time
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
+import uuid
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
-from elk.database.db import get_session
-from elk.database.models import Job, JobStatus
 from elk.api.schemas import TranscribeRequest
 from elk.core.config import settings
-from elk.engine.schemas.interfaces import EmergencyCall
+from elk.database.db import get_session
+from elk.database.models import Job, JobStatus
 
 router = APIRouter()
 
@@ -42,7 +41,7 @@ async def create_job(
     size_mb = len(audio_data) / (1024 * 1024)
     if size_mb > settings.MAX_AUDIO_SIZE_MB:
         raise HTTPException(
-            status_code=413, 
+            status_code=413,
             detail=f"Audio too large ({size_mb:.1f}MB). Max: {settings.MAX_AUDIO_SIZE_MB}MB"
         )
 
@@ -83,7 +82,7 @@ async def create_job(
     session.add(job)
     await session.commit()
     await session.refresh(job)
-    
+
     # 4. Enqueue Task (Using cached Redis pool)
     try:
         await asyncio.wait_for(
@@ -101,7 +100,7 @@ async def create_job(
         job.error_message = f"Enqueue failed: {e}"
         await session.commit()
         raise HTTPException(status_code=500, detail="Failed to enqueue job")
-        
+
     return job
 
 @router.get("/jobs/{job_id}", response_model=Job)
@@ -115,7 +114,7 @@ async def get_job(
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
-@router.get("/jobs", response_model=List[Job])
+@router.get("/jobs", response_model=list[Job])
 async def list_jobs(
     limit: int = 10,
     offset: int = 0,

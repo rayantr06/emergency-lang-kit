@@ -10,10 +10,10 @@ Uses WhisperX for optimized ASR with:
 - Optimized Béjaïa-style French prompt
 """
 
-import os
-import re
 import logging
-from typing import Dict, Any
+import os
+from typing import Any
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -25,15 +25,15 @@ try:
 except ImportError:
     NOISE_REDUCE_AVAILABLE = False
 
-from elk.engine.pipeline.base_pipeline import BasePipeline
-from elk.engine.schemas.interfaces import IncidentType, UrgencyLevel
-from elk.engine.scoring import ConfidenceCalculator, ConfidenceResult
-from elk.engine.rag import HybridRAG, VectorStore
 from elk.engine.models import get_model_registry, get_transcription_cache
-from ..data.lexicon import DAIRATE_BEJAIA, COMMUNES_FLAT, QUARTIERS_BEJAIA, VOCAB_MAP
 
 from elk.engine.ai.llm import LLMClient
-from elk.engine.schemas.interfaces import EmergencyCall, IncidentType, UrgencyLevel, Location
+from elk.engine.pipeline.base_pipeline import BasePipeline
+from elk.engine.rag import HybridRAG, VectorStore
+from elk.engine.schemas.interfaces import EmergencyCall, IncidentType, UrgencyLevel
+from elk.engine.scoring import ConfidenceCalculator
+
+from ..data.lexicon import COMMUNES_FLAT, QUARTIERS_BEJAIA, VOCAB_MAP
 
 # Optimized French-style Béjaïa + Civil Protection vocabulary prompt
 KABYLE_PROMPT_FRANCAIS = """
@@ -60,37 +60,37 @@ class KabylePipeline(BasePipeline):
     Uses WhisperX for fast inference with word-level alignment.
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         super().__init__(config)
         self.llm = LLMClient()
         self.enable_alignment = config.get("enable_alignment", True)
-        
+
         # Initialize Confidence Calculator (FR-04)
         self.confidence_calculator = ConfidenceCalculator(
             asr_weight=config.get("confidence_asr_weight", 0.40),
             entity_weight=config.get("confidence_entity_weight", 0.35),
             rag_weight=config.get("confidence_rag_weight", 0.25)
         )
-        
+
         # Initialize Hybrid RAG (FR-02)
         self._init_hybrid_rag(config)
-        
+
         self._load_whisperx(config)
         if self.enable_alignment:
             self._load_alignment_model()
 
-    def _load_whisperx(self, config: Dict[str, Any]):
+    def _load_whisperx(self, config: dict[str, Any]):
         """
         Load WhisperX model using ModelRegistry (singleton).
         Prevents duplicate model loading across pipeline instances.
         """
-        import whisperx
         import torch
+        import whisperx
         self.whisperx = whisperx
-        
+
         # Model priority: local fine-tuned > config > default
         model_path = config.get("whisper_model", "whisper-kabyle-dgpc-v6-ct2")
-        
+
         # Check for local fine-tuned model
         local_model_path = os.path.join(
             os.path.dirname(__file__), "..", "..", "..", "..",
@@ -99,7 +99,7 @@ class KabylePipeline(BasePipeline):
         if os.path.exists(local_model_path):
             model_path = local_model_path
             logger.info(f"Using fine-tuned WhisperX: {model_path}")
-        
+
         # Device detection
         if torch.cuda.is_available():
             self.device = "cuda"
@@ -107,7 +107,7 @@ class KabylePipeline(BasePipeline):
         else:
             self.device = "cpu"
             compute_type = "int8"
-        
+
         # Use ModelRegistry singleton for caching
         registry = get_model_registry()
         self.model = registry.get_whisper_model(
@@ -122,7 +122,7 @@ class KabylePipeline(BasePipeline):
                 "no_speech_threshold": 0.6,
             }
         )
-        
+
         # Get transcription cache for A2 optimization
         self._transcription_cache = get_transcription_cache()
 
@@ -139,35 +139,36 @@ class KabylePipeline(BasePipeline):
         except Exception as e:
             logger.warning(f"Alignment unavailable: {e}")
             self.enable_alignment = False
-    
+
     def cleanup_gpu_memory(self):
         """Free GPU memory when models are no longer needed."""
         import gc
+
         import torch
-        
+
         if hasattr(self, 'model'):
             del self.model
         if hasattr(self, 'align_model'):
             del self.align_model
-        
+
         gc.collect()
         if torch.cuda.is_available():
             torch.cuda.empty_cache()
             logger.info("GPU memory cleared")
 
-    def _init_hybrid_rag(self, config: Dict[str, Any]):
+    def _init_hybrid_rag(self, config: dict[str, Any]):
         """
         Initialize Hybrid RAG with vector + keyword search (FR-02).
         Uses ChromaDB for semantic search and lexicon for keyword matching.
         """
         enable_vector = config.get("enable_vector_rag", True)
-        
+
         if enable_vector:
             try:
                 # Create persistent vector store in pack directory
                 pack_dir = os.path.dirname(__file__)
                 persist_path = os.path.join(pack_dir, "..", ".chroma_db")
-                
+
                 vector_store = VectorStore(
                     collection_name="dz_kab_knowledge",
                     persist_path=persist_path
@@ -183,7 +184,7 @@ class KabylePipeline(BasePipeline):
         else:
             logger.info("Using keyword-only RAG (vector disabled)")
             self.rag = HybridRAG(vector_store=None)
-        
+
         # Load pack knowledge into RAG
         self.rag.load_pack_knowledge(
             communes=COMMUNES_FLAT,
@@ -205,18 +206,18 @@ class KabylePipeline(BasePipeline):
         if cached is not None:
             logger.debug("TranscriptionCache hit")
             return cached
-        
+
         # Load audio with WhisperX
         audio = self.whisperx.load_audio(audio_path)
-        
+
         # Preprocessing: noise reduction if available
         if NOISE_REDUCE_AVAILABLE:
             audio = nr.reduce_noise(y=audio, sr=16000, prop_decrease=0.8)
             audio = audio / (np.max(np.abs(audio)) + 1e-8)
-        
+
         # Transcribe with WhisperX
         result = self.model.transcribe(audio, batch_size=16)
-        
+
         # Word-level alignment (optional)
         if self.enable_alignment and result.get("segments"):
             try:
@@ -230,28 +231,28 @@ class KabylePipeline(BasePipeline):
                 result = aligned
             except Exception as e:
                 logger.warning(f"Alignment failed: {e}")
-        
+
         # Assemble transcription
         transcription = " ".join([s["text"].strip() for s in result.get("segments", [])])
-        
+
         # A2 Optimization: Cache result
         self._transcription_cache.set(audio_path, transcription)
-        
+
         return transcription
 
     def normalize(self, raw_text: str) -> str:
         """Text normalization with Arabizi mapping and vocabulary standardization."""
         text = raw_text.lower()
-        
+
         # Arabizi Mapping
         arabizi = {"3": "ɛ", "7": "ḥ", "9": "q", "5": "x", "8": "ɣ"}
         for k, v in arabizi.items():
             text = text.replace(k, v)
-        
+
         # Vocabulary normalization (Kabyle -> French)
         for k, v in VOCAB_MAP.items():
             text = text.replace(k, v)
-        
+
         return text.strip()
 
     def retrieve_context(self, text: str) -> str:
@@ -260,13 +261,13 @@ class KabylePipeline(BasePipeline):
         Combines semantic similarity with exact keyword matching.
         """
         results, context = self.rag.search(text, n_results=10)
-        
+
         # Cache results for confidence calculation
         self._last_rag_results = results
-        
+
         return context
 
-    def extract(self, normalized_text: str) -> Dict[str, Any]:
+    def extract(self, normalized_text: str) -> dict[str, Any]:
         """
         AI-Powered Extraction (Gemini 1.5 Flash)
         Uses RAG Context to guide the LLM.
@@ -275,7 +276,7 @@ class KabylePipeline(BasePipeline):
         # 1. Retrieve Knowledge (RAG)
         context = self.retrieve_context(normalized_text)
         self._last_rag_context = context  # Store for confidence calculation
-        
+
         # 2. Construct System Prompt
         system_prompt = f"""
         You are an Emergency Dispatch AI for North Algeria (Kabylie).
@@ -301,22 +302,22 @@ class KabylePipeline(BasePipeline):
             # Strip fields that BasePipeline adds later
             if "audio_file" in data: del data["audio_file"]
             if "transcription_raw" in data: del data["transcription_raw"]
-            
+
             # 4. Calculate REAL confidence (FR-04)
             confidence_result = self.confidence_calculator.calculate(
                 transcription=normalized_text,
                 extracted=data,
                 rag_context=context
             )
-            
+
             # Override LLM's confidence guess with real calculation
             data["confidence"] = confidence_result.overall
-            
+
             # Set human review flags based on real scoring
             data["needs_human_review"] = confidence_result.triggers_human_review
             if confidence_result.triggers_human_review:
                 data["human_review_reason"] = confidence_result.reasoning
-            
+
             # Log confidence breakdown for debugging
             print(f"📊 Confidence: {confidence_result.overall:.2f} "
                   f"(ASR:{confidence_result.asr_score:.2f} "
@@ -324,9 +325,9 @@ class KabylePipeline(BasePipeline):
                   f"RAG:{confidence_result.rag_score:.2f})")
             if confidence_result.triggers_human_review:
                 print(f"   ⚠️ {confidence_result.reasoning}")
-            
+
             return data
-            
+
         except Exception as e:
             print(f"⚠️ AI Failure, falling back to rules: {e}")
             return {

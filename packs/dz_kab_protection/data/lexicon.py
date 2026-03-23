@@ -31,7 +31,7 @@ COMMUNES_FLAT = [c for sublist in DAIRATE_BEJAIA.values() for c in sublist]
 
 # Urban Neighborhoods (Quartiers Pop)
 QUARTIERS_BEJAIA = [
-    "Ihaddaden", "Sidi Ahmed", "Ighil Ouazzoug", "Dar Nacer", "Amriw", 
+    "Ihaddaden", "Sidi Ahmed", "Ighil Ouazzoug", "Dar Nacer", "Amriw",
     "Sidi Ali Lebhar", "Boulimat", "Targa Ouzemour", "La Brise de Mer",
     "Les Oliviers", "Cité Tobbal"
 ]
@@ -43,19 +43,19 @@ VOCAB_MAP = {
     "l3afia": "incendie",
     "lḥriq": "incendie",
     "lhrik": "incendie",
-    
+
     # Accident
     "aksida": "accident",
     "mdaggan": "collision",
     "teqleb": "renversé",
     "yeqleb": "renversé",
-    
+
     # Medical
     "amdiw": "malade",
     "yeḥrec": "grave",
     "yemmut": "décédé",
     "irrouḥ": "décédé",
-    
+
     # Context
     "azul": "bonjour",
     "salam": "bonjour",

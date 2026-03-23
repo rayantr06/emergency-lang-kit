@@ -4,8 +4,10 @@ Abstract Logic for Emergency Call Processing
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Any
+
 from ..schemas.interfaces import EmergencyCall
+
 
 class BasePipeline(ABC):
     """
@@ -17,7 +19,7 @@ class BasePipeline(ABC):
     4. Validate (Schema Check)
     """
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
 
     @abstractmethod
@@ -31,7 +33,7 @@ class BasePipeline(ABC):
         pass
 
     @abstractmethod
-    def extract(self, normalized_text: str) -> Dict[str, Any]:
+    def extract(self, normalized_text: str) -> dict[str, Any]:
         """Step 3: Extract structured entities (Incident, Location, etc)"""
         pass
 
@@ -42,13 +44,13 @@ class BasePipeline(ABC):
         """
         # 1. ASR
         raw_text = self.transcribe(audio_path)
-        
+
         # 2. Normalize
         norm_text = self.normalize(raw_text)
-        
+
         # 3. Extract
         entities = self.extract(norm_text)
-        
+
         # 4. Construct Object
         # Note: Validation logic usually happens here or inside the extract method
         # This is a simplified construction for the base class
