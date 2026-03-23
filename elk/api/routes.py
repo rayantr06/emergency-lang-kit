@@ -145,14 +145,17 @@ def _is_supported_audio(data: bytes) -> bool:
     return False
 
 
-def _cleanup_old_uploads():
-    """Remove old uploaded files based on TTL to protect disk usage."""
-    cutoff = time.time() - settings.UPLOAD_TTL_SECONDS
-    if not os.path.isdir(settings.UPLOAD_DIR):
+def _sync_cleanup_old_uploads(upload_dir: str, cutoff: float):
+    if not os.path.isdir(upload_dir):
         return
-    for entry in os.scandir(settings.UPLOAD_DIR):
+    for entry in os.scandir(upload_dir):
         try:
             if entry.is_file() and entry.stat().st_mtime < cutoff:
                 os.remove(entry.path)
         except Exception:
             continue
+
+async def _cleanup_old_uploads():
+    """Remove old uploaded files based on TTL to protect disk usage."""
+    cutoff = time.time() - settings.UPLOAD_TTL_SECONDS
+    await asyncio.to_thread(_sync_cleanup_old_uploads, settings.UPLOAD_DIR, cutoff)
