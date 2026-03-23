@@ -5,9 +5,7 @@ Best practice from LangChain: rerank results before LLM context.
 """
 
 import logging
-from typing import List, Tuple, Optional
 from dataclasses import dataclass
-
 
 logger = logging.getLogger(__name__)
 
@@ -18,8 +16,8 @@ class RankedResult:
     document: str
     metadata: dict
     original_score: float
-    rerank_score: Optional[float] = None
-    
+    rerank_score: float | None = None
+
     @property
     def final_score(self) -> float:
         """Return rerank score if available, else original."""
@@ -35,11 +33,11 @@ class CrossEncoderReranker:
     
     Best practice: Rerank top-K results (e.g., K=20) down to top-N (e.g., N=5).
     """
-    
+
     def __init__(
         self,
         model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
-        device: Optional[str] = None
+        device: str | None = None
     ):
         """
         Initialize cross-encoder.
@@ -51,7 +49,7 @@ class CrossEncoderReranker:
         self.model_name = model_name
         self.device = device
         self._model = None
-    
+
     def _load_model(self):
         """Lazy load cross-encoder model."""
         if self._model is None:
@@ -66,13 +64,13 @@ class CrossEncoderReranker:
                 )
                 raise
         return self._model
-    
+
     def rerank(
         self,
         query: str,
-        documents: List[str],
+        documents: list[str],
         top_n: int = 5
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         """
         Rerank documents by relevance to query.
         
@@ -86,30 +84,30 @@ class CrossEncoderReranker:
         """
         if not documents:
             return []
-        
+
         model = self._load_model()
-        
+
         # Create query-document pairs
         pairs = [(query, doc) for doc in documents]
-        
+
         # Get relevance scores
         scores = model.predict(pairs)
-        
+
         # Sort by score descending
         scored_docs = sorted(
             zip(documents, scores),
             key=lambda x: x[1],
             reverse=True
         )
-        
+
         return scored_docs[:top_n]
-    
+
     def rerank_with_metadata(
         self,
         query: str,
-        results: List[RankedResult],
+        results: list[RankedResult],
         top_n: int = 5
-    ) -> List[RankedResult]:
+    ) -> list[RankedResult]:
         """
         Rerank results preserving metadata.
         
@@ -123,22 +121,22 @@ class CrossEncoderReranker:
         """
         if not results:
             return []
-        
+
         model = self._load_model()
-        
+
         # Create query-document pairs
         pairs = [(query, r.document) for r in results]
-        
+
         # Get relevance scores
         scores = model.predict(pairs)
-        
+
         # Update rerank scores
         for result, score in zip(results, scores):
             result.rerank_score = float(score)
-        
+
         # Sort by rerank score descending
         sorted_results = sorted(results, key=lambda r: r.final_score, reverse=True)
-        
+
         return sorted_results[:top_n]
 
 
@@ -147,11 +145,11 @@ class MinScoreFilter:
     Filter results below minimum relevance threshold.
     Best practice: Remove low-quality matches before LLM context.
     """
-    
+
     def __init__(self, min_score: float = 0.3):
         self.min_score = min_score
-    
-    def filter(self, results: List[RankedResult]) -> List[RankedResult]:
+
+    def filter(self, results: list[RankedResult]) -> list[RankedResult]:
         """Remove results below threshold."""
         return [r for r in results if r.final_score >= self.min_score]
 
@@ -178,21 +176,21 @@ def create_reranking_pipeline(
             reranker = CrossEncoderReranker(model_name=rerank_model)
         except ImportError:
             logger.warning("Reranking disabled - sentence-transformers not available")
-    
+
     score_filter = MinScoreFilter(min_score=min_score)
-    
+
     def rerank_pipeline(
         query: str,
-        results: List[RankedResult],
+        results: list[RankedResult],
         top_n: int = 5
-    ) -> List[RankedResult]:
+    ) -> list[RankedResult]:
         """Apply reranking and filtering pipeline."""
-        
+
         if reranker:
             results = reranker.rerank_with_metadata(query, results, top_n=top_n * 2)
-        
+
         results = score_filter.filter(results)
-        
+
         return results[:top_n]
-    
+
     return rerank_pipeline

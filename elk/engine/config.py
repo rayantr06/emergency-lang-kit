@@ -8,8 +8,7 @@ Best practice configuration management with:
 """
 
 import os
-from typing import Optional, List
-from pathlib import Path
+
 from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -17,15 +16,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class LLMSettings(BaseModel):
     """LLM provider configuration."""
     provider: str = "gemini"
-    
+
     # Cloud settings
     cloud_model: str = "gemini-1.5-flash"
-    cloud_api_key: Optional[SecretStr] = None
-    
+    cloud_api_key: SecretStr | None = None
+
     # Local settings
     local_model: str = "llama3"
     local_base_url: str = "http://localhost:11434"
-    
+
     # Retry settings
     max_retries: int = 3
     retry_base_delay: float = 1.0
@@ -46,11 +45,11 @@ class RAGSettings(BaseModel):
     enable_vector: bool = True
     collection_name: str = "elk_knowledge"
     persist_directory: str = "./chromadb"
-    
+
     # Hybrid weights
     keyword_weight: float = 0.5
     vector_weight: float = 0.5
-    
+
     # Reranking
     enable_reranking: bool = True
     rerank_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
@@ -92,7 +91,7 @@ class ELKSettings(BaseSettings):
     
     Or from .env file.
     """
-    
+
     model_config = SettingsConfigDict(
         env_prefix="ELK_",
         env_nested_delimiter="__",
@@ -101,11 +100,11 @@ class ELKSettings(BaseSettings):
         case_sensitive=False,
         extra="ignore"
     )
-    
+
     # Pack configuration
     pack_name: str = "dz-kab-protection"
     pack_version: str = "1.0.0"
-    
+
     # Nested settings
     llm: LLMSettings = Field(default_factory=LLMSettings)
     asr: ASRSettings = Field(default_factory=ASRSettings)
@@ -113,8 +112,8 @@ class ELKSettings(BaseSettings):
     confidence: ConfidenceSettings = Field(default_factory=ConfidenceSettings)
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
     server: ServerSettings = Field(default_factory=ServerSettings)
-    
-    def get_llm_api_key(self) -> Optional[str]:
+
+    def get_llm_api_key(self) -> str | None:
         """Get API key as string (for use with clients)."""
         if self.llm.cloud_api_key:
             return self.llm.cloud_api_key.get_secret_value()
@@ -123,7 +122,7 @@ class ELKSettings(BaseSettings):
 
 
 # Global settings instance (singleton pattern)
-_settings: Optional[ELKSettings] = None
+_settings: ELKSettings | None = None
 
 
 def get_settings() -> ELKSettings:
