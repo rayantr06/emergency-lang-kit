@@ -9,7 +9,7 @@ import json
 import hashlib
 import sqlite3
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Iterable
 from dataclasses import dataclass, asdict
 from datetime import datetime
 
@@ -108,7 +108,7 @@ class TrainingDatabase:
         self,
         min_quality: float = 0.5,
         limit: Optional[int] = None
-    ) -> List[TrainingSample]:
+    ) -> Iterable[TrainingSample]:
         """Get training samples (is_test_set=False)."""
         query = """
             SELECT * FROM samples 
@@ -119,14 +119,16 @@ class TrainingDatabase:
             query += f" LIMIT {limit}"
         
         cursor = self.conn.execute(query, (min_quality,))
-        return [self._row_to_sample(row) for row in cursor.fetchall()]
+        for row in cursor:
+            yield self._row_to_sample(row)
     
-    def get_test_set(self) -> List[TrainingSample]:
+    def get_test_set(self) -> Iterable[TrainingSample]:
         """Get test samples (is_test_set=True)."""
         cursor = self.conn.execute(
             "SELECT * FROM samples WHERE is_test_set = 1"
         )
-        return [self._row_to_sample(row) for row in cursor.fetchall()]
+        for row in cursor:
+            yield self._row_to_sample(row)
     
     def _row_to_sample(self, row: sqlite3.Row) -> TrainingSample:
         """Convert database row to TrainingSample."""
@@ -177,7 +179,7 @@ class TrainingDatabase:
         """
         import random
         
-        samples = self.get_training_set()
+        samples = list(self.get_training_set())
         random.shuffle(samples)
         
         split_idx = int(len(samples) * (1 - test_split))
