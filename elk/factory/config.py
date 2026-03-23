@@ -4,8 +4,8 @@ Loads and validates pack configuration from YAML files.
 """
 
 import os
-from typing import Dict, Any, Optional
 from pathlib import Path
+from typing import Any
 
 
 class PackConfig:
@@ -17,40 +17,41 @@ class PackConfig:
     - rules.yaml: Business decision rules
     - geography.json: GeoJSON spatial data
     """
-    
+
     def __init__(self, pack_path: str):
-        import yaml
         import json
-        
+
+        import yaml
+
         self.pack_path = Path(pack_path)
-        
+
         # Load config.yaml
         config_file = self.pack_path / "config.yaml"
         if config_file.exists():
-            with open(config_file, 'r', encoding='utf-8') as f:
+            with open(config_file, encoding='utf-8') as f:
                 self._config = yaml.safe_load(f)
         else:
             self._config = {}
-        
+
         # Load rules.yaml
         rules_file = self.pack_path / "rules.yaml"
         if rules_file.exists():
-            with open(rules_file, 'r', encoding='utf-8') as f:
+            with open(rules_file, encoding='utf-8') as f:
                 self._rules = yaml.safe_load(f)
         else:
             self._rules = {}
-        
+
         # Load geography.json
         geo_file = self.pack_path / "geography.json"
         if geo_file.exists():
-            with open(geo_file, 'r', encoding='utf-8') as f:
+            with open(geo_file, encoding='utf-8') as f:
                 self._geography = json.load(f)
         else:
             self._geography = {}
-        
+
         # Expand environment variables
         self._expand_env_vars(self._config)
-    
+
     def _expand_env_vars(self, obj: Any) -> Any:
         """Recursively expand environment variables in config values."""
         if isinstance(obj, dict):
@@ -68,15 +69,15 @@ class PackConfig:
             else:
                 return os.getenv(var_expr, obj)
         return obj
-    
+
     @property
     def pack_name(self) -> str:
         return self._config.get("pack", {}).get("name", "unknown")
-    
+
     @property
     def version(self) -> str:
         return self._config.get("pack", {}).get("version", "0.0.0")
-    
+
     def get(self, key: str, default: Any = None) -> Any:
         """Get config value by dot-notation key (e.g., 'llm.provider')."""
         keys = key.split(".")
@@ -87,12 +88,12 @@ class PackConfig:
             else:
                 return default
         return value if value is not None else default
-    
-    def get_llm_config(self) -> Dict[str, Any]:
+
+    def get_llm_config(self) -> dict[str, Any]:
         """Get LLM configuration for Cloud/Local toggle."""
         llm = self._config.get("llm", {})
         provider = llm.get("provider", "gemini")
-        
+
         if provider == "gemini":
             return {
                 "provider": "gemini",
@@ -105,29 +106,29 @@ class PackConfig:
                 "model": llm.get("local", {}).get("model", "llama3"),
                 "base_url": llm.get("local", {}).get("base_url", "http://localhost:11434")
             }
-    
-    def get_asr_config(self) -> Dict[str, Any]:
+
+    def get_asr_config(self) -> dict[str, Any]:
         """Get ASR configuration for WhisperX."""
         return self._config.get("asr", {})
-    
-    def get_rag_config(self) -> Dict[str, Any]:
+
+    def get_rag_config(self) -> dict[str, Any]:
         """Get RAG configuration."""
         return self._config.get("rag", {})
-    
-    def get_confidence_config(self) -> Dict[str, Any]:
+
+    def get_confidence_config(self) -> dict[str, Any]:
         """Get confidence calculator configuration."""
         return self._config.get("confidence", {})
-    
+
     @property
-    def rules(self) -> Dict[str, Any]:
+    def rules(self) -> dict[str, Any]:
         """Get business rules."""
         return self._rules
-    
+
     @property
-    def geography(self) -> Dict[str, Any]:
+    def geography(self) -> dict[str, Any]:
         """Get geography GeoJSON data."""
         return self._geography
-    
+
     def get_communes(self) -> list:
         """Extract commune names from geography."""
         communes = []
@@ -136,7 +137,7 @@ class PackConfig:
             if props.get("type") == "commune":
                 communes.append(props.get("name"))
         return communes
-    
+
     def get_landmarks(self) -> list:
         """Extract landmark names from geography."""
         landmarks = []
@@ -154,7 +155,7 @@ def load_pack_config(pack_name: str) -> PackConfig:
     """
     # Convert hyphen to underscore for Python module compatibility
     module_name = pack_name.replace("-", "_")
-    
+
     # Get packs directory
     base_dir = os.getenv("ELK_PACKS_DIR")
     if not base_dir:
@@ -164,10 +165,10 @@ def load_pack_config(pack_name: str) -> PackConfig:
         base_dir = project_root / "packs"
     else:
         base_dir = Path(base_dir)
-    
+
     pack_path = base_dir / module_name
-    
+
     if not pack_path.exists():
         raise FileNotFoundError(f"Pack not found: {pack_name} at {pack_path}")
-    
+
     return PackConfig(pack_path)

@@ -1,7 +1,8 @@
 import base64
 import shutil
-from fastapi.testclient import TestClient
+
 import pytest
+from fastapi.testclient import TestClient
 
 from elk.api import app as app_module
 from elk.core.config import settings

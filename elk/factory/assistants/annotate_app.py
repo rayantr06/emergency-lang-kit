@@ -4,20 +4,19 @@ Streamlit UI for Human-in-the-Loop Data Collection.
 Based on production-proven 'dgpc_annotation_local.py'.
 """
 
-import streamlit as st
-import os
 import json
-import pandas as pd
-import google.generativeai as genai
+import os
+import time
 from datetime import datetime
 from glob import glob
+
+import streamlit as st
 from pydub import AudioSegment
-import time
 
 # --- CONFIGURATION INITIALE ---
 st.set_page_config(
-    page_title="ELK Scout Hub", 
-    layout="wide", 
+    page_title="ELK Scout Hub",
+    layout="wide",
     page_icon="🛡️"
 )
 
@@ -50,11 +49,11 @@ for d in [DATA_DIR, AUDIO_RAW_DIR, AUDIO_PROC_DIR]: os.makedirs(d, exist_ok=True
 # --- UTILS ---
 def load_data(p):
     if os.path.exists(p):
-        with open(p, 'r', encoding='utf-8') as f: return json.load(f)
+        with open(p, encoding='utf-8') as f: return json.load(f)
     return []
 
 def save_all(data_list):
-    with open(ANNOTATIONS_FILE, 'w', encoding='utf-8') as f: 
+    with open(ANNOTATIONS_FILE, 'w', encoding='utf-8') as f:
         json.dump(data_list, f, ensure_ascii=False, indent=2)
 
 def process_audio(p):
@@ -85,7 +84,7 @@ is_done = cur_f in ann_map
 with st.sidebar:
     st.header("ELK SCOUT")
     st.text(f"Queue: {st.session_state.idx + 1}/{len(raw_files)}")
-    if st.button("Next Call"): 
+    if st.button("Next Call"):
         st.session_state.idx = (st.session_state.idx + 1) % len(raw_files)
         st.rerun()
 
@@ -112,7 +111,7 @@ if st.button("SAVE ANNOTATION", type="primary"):
         "location": location,
         "timestamp": datetime.now().isoformat()
     }
-    
+
     # Update or Append
     found = False
     for i, a in enumerate(annotations):
@@ -122,7 +121,7 @@ if st.button("SAVE ANNOTATION", type="primary"):
             break
     if not found:
         annotations.append(entry)
-        
+
     save_all(annotations)
     st.success("Saved!")
     time.sleep(1)

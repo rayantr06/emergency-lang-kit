@@ -4,10 +4,10 @@ ELK Master Verification Suite
 The ultimate shield against technical and fundamental errors.
 """
 
-import sys
 import os
 import subprocess
-from pathlib import Path
+import sys
+
 
 def print_step(msg):
     print(f"\n[STEP] {msg}...")
@@ -18,7 +18,7 @@ def run_command(cmd, name):
     if not shutil.which(executable):
         print(f"⚠️ {name} SKIPPED ({executable} not in PATH)")
         return True
-    
+
     try:
         subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
         print(f"✅ {name} PASSED")
@@ -42,14 +42,14 @@ def check_structure():
         if not os.path.exists(p):
             print(f"  ⚠️ Missing critical file: {p}")
             all_ok = False
-    
+
     # Check for __init__.py in all subdirs of elk/
     for root, dirs, files in os.walk("elk"):
         if "__pycache__" in root: continue
         if "__init__.py" not in files:
             print(f"  ⚠️ Missing __init__.py in {root}")
             all_ok = False
-            
+
     if all_ok: print("✅ Project structure is integral")
     return all_ok
 
@@ -71,9 +71,9 @@ def verify_config():
 
 def audit_ignore():
     print_step("Auditing .gitignore for leaks")
-    with open(".gitignore", "r") as f:
+    with open(".gitignore") as f:
         content = f.read()
-    
+
     mandatory_ignores = [".env", "*.db", "logs/", "__pycache__"]
     all_ok = True
     for m in mandatory_ignores:
@@ -87,14 +87,14 @@ def main():
     print("==========================================")
     print("   🛡️  ELK ZERO-RISK VERIFICATION SUITE  ")
     print("==========================================\n")
-    
+
     results = [
         check_structure(),
         run_static_checks(),
         verify_config(),
         audit_ignore()
     ]
-    
+
     if all(results):
         print("\n🏆 VERDICT: DEPOT READY FOR PUSH")
         sys.exit(0)

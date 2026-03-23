@@ -1,5 +1,5 @@
-from elk.api.schemas import TranscribeRequest
 from elk.core.config import settings
+
 
 def _get_headers():
     headers = {}
@@ -21,7 +21,7 @@ def test_create_job_endpoint(client):
         "language_hint": "kab"
     }
     response = client.post("/jobs", json=payload, headers=_get_headers())
-    
+
     assert response.status_code == 201
     data = response.json()
     assert "id" in data

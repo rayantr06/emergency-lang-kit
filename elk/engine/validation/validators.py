@@ -3,9 +3,11 @@ ELK Kernel - Validation Module
 Generic Pydantic Validators for Emergency Calls
 """
 
+
 from pydantic import ValidationError
-from typing import List, Optional
-from ..schemas.interfaces import EmergencyCall, IncidentType, UrgencyLevel, TriState
+
+from ..schemas.interfaces import EmergencyCall, UrgencyLevel
+
 
 class CallValidator:
     """
@@ -14,7 +16,7 @@ class CallValidator:
     """
 
     @staticmethod
-    def validate_consistency(call: EmergencyCall) -> List[str]:
+    def validate_consistency(call: EmergencyCall) -> list[str]:
         """
         Checks for logical contradictions in the extracted data.
         Returns a list of warning messages (empty if valid).
@@ -30,7 +32,7 @@ class CallValidator:
         # 2. Incident Type Specific Checks
         # Fire incidents should likely not have 'trapped_persons' as NO if 'victims_count' is high
         # (This is more generic logic)
-        
+
         return errors
 
     @staticmethod
