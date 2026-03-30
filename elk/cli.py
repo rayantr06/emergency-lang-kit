@@ -123,10 +123,52 @@ class Pipeline(BasePipeline):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.llm = LLMClient()
-        # TODO: Initialize ASR, RAG, etc.
+
+        # Initialize RAG
+        rag_config = config.get("rag", dict())
+        self.rag = HybridRAG(
+            keyword_weight=rag_config.get("keyword_weight", 0.5),
+            vector_weight=rag_config.get("vector_weight", 0.5)
+        )
+        self.rag.load_pack_knowledge(COMMUNES, QUARTIERS, VOCAB_MAP)
+
+        # Initialize Confidence Calculator
+        conf_config = config.get("confidence", dict())
+        self.calculator = ConfidenceCalculator(
+            asr_weight=conf_config.get("asr_weight", 0.40),
+            entity_weight=conf_config.get("entity_weight", 0.35),
+            rag_weight=conf_config.get("rag_weight", 0.25)
+        )
+
+        # ASR configuration and initialization
+        self.asr_config = config.get("asr", dict())
+        self._load_asr(self.asr_config)
     
+    def _load_asr(self, asr_config: Dict[str, Any]):
+        """
+        Initialize ASR client/model.
+        TODO: Implement actual ASR loading (e.g., using faster-whisper or whisperx)
+        """
+        self.asr_model = None
+        model_name = asr_config.get("model", "whisper-small")
+
+        try:
+            from faster_whisper import WhisperModel
+            self.asr_model = WhisperModel(
+                model_name,
+                device=asr_config.get("device", "cpu"),
+                compute_type=asr_config.get("compute_type", "int8")
+            )
+        except ImportError:
+            print("Warning: faster-whisper not installed. ASR will not function.")
+
     def transcribe(self, audio_path: str) -> str:
         """Implement ASR transcription."""
+        if self.asr_model is None:
+            raise NotImplementedError("ASR model not initialized.")
+        # Example implementation for faster-whisper:
+        # segments, info = self.asr_model.transcribe(audio_path)
+        # return " ".join([segment.text for segment in segments])
         raise NotImplementedError("Implement transcribe()")
     
     def normalize(self, raw_text: str) -> str:
