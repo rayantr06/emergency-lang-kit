@@ -12,8 +12,7 @@ Where:
 """
 
 from dataclasses import dataclass
-from typing import Dict, Any, List, Optional
-from ..schemas.interfaces import EmergencyCall, IncidentType, UrgencyLevel
+from typing import Any
 
 
 @dataclass
@@ -39,14 +38,14 @@ class ConfidenceCalculator:
     - Entity: 35% (critical for dispatch decision)
     - RAG: 25% (helpful for verification)
     """
-    
+
     # Required entity fields for a complete extraction
     REQUIRED_FIELDS = ["incident_type", "urgency", "location"]
     OPTIONAL_FIELDS = ["victims_count", "description", "injuries"]
-    
+
     # Confidence threshold for human review
     HUMAN_REVIEW_THRESHOLD = 0.70  # per MASTER_VISION.md
-    
+
     def __init__(
         self,
         asr_weight: float = 0.40,
@@ -65,16 +64,16 @@ class ConfidenceCalculator:
         total = asr_weight + entity_weight + rag_weight
         if abs(total - 1.0) > 0.01:
             raise ValueError(f"Weights must sum to 1.0, got {total}")
-        
+
         self.w_asr = asr_weight
         self.w_entity = entity_weight
         self.w_rag = rag_weight
-    
+
     def calculate_asr_confidence(
         self,
         transcription: str,
-        word_confidences: Optional[List[float]] = None,
-        audio_duration: Optional[float] = None
+        word_confidences: list[float] | None = None,
+        audio_duration: float | None = None
     ) -> float:
         """
         Calculate ASR quality score.
@@ -86,13 +85,13 @@ class ConfidenceCalculator:
         """
         score = 0.0
         factors = 0
-        
+
         # Factor 1: Word-level confidence (if available)
         if word_confidences and len(word_confidences) > 0:
             avg_word_conf = sum(word_confidences) / len(word_confidences)
             score += avg_word_conf
             factors += 1
-        
+
         # Factor 2: Transcription quality heuristics
         if transcription:
             # Penalize very short transcriptions
@@ -105,7 +104,7 @@ class ConfidenceCalculator:
                 length_score = 0.9
             score += length_score
             factors += 1
-            
+
             # Factor 3: Check for common ASR error patterns
             error_patterns = [
                 "...",  # Trailing/incomplete
@@ -117,7 +116,7 @@ class ConfidenceCalculator:
             error_score = max(0.0, 1.0 - (error_count * 0.2))
             score += error_score
             factors += 1
-        
+
         # Factor 4: Duration ratio check
         if audio_duration and transcription:
             # Expected: ~2-3 words per second of speech
@@ -133,15 +132,15 @@ class ConfidenceCalculator:
                 duration_score = 0.3
             score += duration_score
             factors += 1
-        
+
         if factors == 0:
             return 0.5  # Default neutral score
-        
+
         return min(1.0, score / factors)
-    
+
     def calculate_entity_coverage(
         self,
-        extracted: Dict[str, Any]
+        extracted: dict[str, Any]
     ) -> float:
         """
         Calculate entity extraction completeness.
@@ -152,7 +151,7 @@ class ConfidenceCalculator:
         - Field value quality (not UNKNOWN)
         """
         score = 0.0
-        
+
         # Required fields (weighted higher)
         required_found = 0
         for field in self.REQUIRED_FIELDS:
@@ -165,10 +164,10 @@ class ConfidenceCalculator:
                     required_found += 0.3
                 else:
                     required_found += 1.0
-        
+
         required_score = required_found / len(self.REQUIRED_FIELDS)
         score += required_score * 0.7  # 70% weight for required
-        
+
         # Optional fields (bonus)
         optional_found = 0
         for field in self.OPTIONAL_FIELDS:
@@ -176,17 +175,17 @@ class ConfidenceCalculator:
                 value = extracted[field]
                 if value and str(value).strip() and str(value) != "0":
                     optional_found += 1
-        
+
         if self.OPTIONAL_FIELDS:
             optional_score = optional_found / len(self.OPTIONAL_FIELDS)
             score += optional_score * 0.3  # 30% weight for optional
-        
+
         return min(1.0, score)
-    
+
     def calculate_rag_score(
         self,
         rag_context: str,
-        extracted_location: Optional[Dict[str, Any]] = None
+        extracted_location: dict[str, Any] | None = None
     ) -> float:
         """
         Calculate RAG (Knowledge Base) hit quality.
@@ -198,9 +197,9 @@ class ConfidenceCalculator:
         """
         if not rag_context or rag_context == "NO_CONTEXT_FOUND":
             return 0.0
-        
+
         score = 0.0
-        
+
         # Count RAG hits
         hit_count = rag_context.count("DETECTED_")
         if hit_count >= 3:
@@ -209,11 +208,11 @@ class ConfidenceCalculator:
             score = 0.8
         elif hit_count >= 1:
             score = 0.6
-        
+
         # Bonus if location was specifically matched
         if "DETECTED_LOCATION" in rag_context:
             score = min(1.0, score + 0.2)
-        
+
         # Verify extraction used RAG context
         if extracted_location:
             location_details = str(extracted_location.get("details", "")).lower()
@@ -224,16 +223,16 @@ class ConfidenceCalculator:
                     if entity in location_details:
                         score = min(1.0, score + 0.2)
                         break
-        
+
         return score
-    
+
     def calculate(
         self,
         transcription: str,
-        extracted: Dict[str, Any],
+        extracted: dict[str, Any],
         rag_context: str = "NO_CONTEXT_FOUND",
-        word_confidences: Optional[List[float]] = None,
-        audio_duration: Optional[float] = None
+        word_confidences: list[float] | None = None,
+        audio_duration: float | None = None
     ) -> ConfidenceResult:
         """
         Calculate overall confidence with detailed breakdown.
@@ -252,24 +251,24 @@ class ConfidenceCalculator:
         asr_score = self.calculate_asr_confidence(
             transcription, word_confidences, audio_duration
         )
-        
+
         entity_score = self.calculate_entity_coverage(extracted)
-        
+
         rag_score = self.calculate_rag_score(
             rag_context,
             extracted.get("location") if isinstance(extracted.get("location"), dict) else None
         )
-        
+
         # Weighted combination
         overall = (
             self.w_asr * asr_score +
             self.w_entity * entity_score +
             self.w_rag * rag_score
         )
-        
+
         # Determine if human review needed
         triggers_review = overall < self.HUMAN_REVIEW_THRESHOLD
-        
+
         # Generate reasoning
         reasoning_parts = []
         if asr_score < 0.5:
@@ -278,12 +277,12 @@ class ConfidenceCalculator:
             reasoning_parts.append("Missing required entities")
         if rag_score == 0:
             reasoning_parts.append("No location verified")
-        
+
         if triggers_review:
             reasoning = f"HUMAN_REVIEW_REQUIRED: {', '.join(reasoning_parts) or 'Overall confidence below threshold'}"
         else:
             reasoning = "Confidence acceptable for automated dispatch"
-        
+
         return ConfidenceResult(
             overall=round(overall, 3),
             asr_score=round(asr_score, 3),

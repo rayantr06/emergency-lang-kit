@@ -1,15 +1,18 @@
+from typing import Any
+
 from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
-from elk.engine.schemas.interfaces import EmergencyCall, IncidentType, UrgencyLevel
+
+from elk.engine.schemas.interfaces import EmergencyCall
+
 
 # Request Models
 class TranscribeRequest(BaseModel):
     audio_base64: str = Field(..., description="Base64 encoded audio content")
-    language_hint: Optional[str] = Field("kab", description="Language code hint (kab, ara, fra)")
+    language_hint: str | None = Field("kab", description="Language code hint (kab, ara, fra)")
 
 class ExtractRequest(BaseModel):
     transcript: str = Field(..., description="Text to analyze")
-    context: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional context (e.g., location metadata)")
+    context: dict[str, Any] | None = Field(default_factory=dict, description="Additional context (e.g., location metadata)")
 
 # Response Models
 class ProcessResponse(BaseModel):
@@ -23,8 +26,8 @@ class HealthResponse(BaseModel):
     status: str
     version: str = "0.1.0"
     active_packs: list[str]
-    system_load: Optional[Dict[str, float]] = None
-    gpu_status: Optional[Dict[str, Any]] = None
-    cache_stats: Optional[Dict[str, Any]] = None
-    loaded_models: Optional[Dict[str, Any]] = None
-    dependencies: Optional[Dict[str, str]] = None
+    system_load: dict[str, float] | None = None
+    gpu_status: dict[str, Any] | None = None
+    cache_stats: dict[str, Any] | None = None
+    loaded_models: dict[str, Any] | None = None
+    dependencies: dict[str, str] | None = None

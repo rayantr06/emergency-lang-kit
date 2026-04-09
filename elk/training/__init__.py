@@ -1,6 +1,6 @@
 # ELK Training Module
 from .dataset import TrainingDatabase, TrainingSample
-from .trainer import UnslothTrainer, TrainingConfig, LoRAConfig, train_pack
+from .trainer import LoRAConfig, TrainingConfig, UnslothTrainer, train_pack
 
 __all__ = [
     "TrainingDatabase",

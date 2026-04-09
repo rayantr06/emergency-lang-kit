@@ -1,6 +1,8 @@
 import pytest
 from pydantic import ValidationError
-from elk.engine.schemas.interfaces import EmergencyCall, IncidentType, UrgencyLevel, Location
+
+from elk.engine.schemas.interfaces import EmergencyCall, IncidentType, Location, UrgencyLevel
+
 
 def test_valid_emergency_call():
     """Test creating a valid EmergencyCall object"""

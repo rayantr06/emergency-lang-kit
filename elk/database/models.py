@@ -3,11 +3,13 @@ ELK Database Models
 Defines the schema for the Job Orchestration system.
 """
 
-from enum import Enum
-from datetime import datetime
-from typing import Optional, Dict, Any
-from sqlmodel import SQLModel, Field, Column, JSON
 import uuid
+from datetime import datetime
+from enum import Enum
+from typing import Any
+
+from sqlmodel import JSON, Column, Field, SQLModel
+
 
 class JobStatus(str, Enum):
     QUEUED = "queued"
@@ -23,19 +25,19 @@ class Job(SQLModel, table=True):
     """
     id: str = Field(default_factory=lambda: str(uuid.uuid4()), primary_key=True)
     status: JobStatus = Field(default=JobStatus.QUEUED, index=True)
-    
+
     # Timestamps
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     # Data Payload (JSON stored as dict)
-    input_data: Dict[str, Any] = Field(sa_column=Column(JSON))
-    result_data: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
-    
+    input_data: dict[str, Any] = Field(sa_column=Column(JSON))
+    result_data: dict[str, Any] | None = Field(default=None, sa_column=Column(JSON))
+
     # Error Handling
-    error_message: Optional[str] = None
-    traceback: Optional[str] = None
-    
+    error_message: str | None = None
+    traceback: str | None = None
+
     # Metrics
-    processing_time: Optional[float] = None
+    processing_time: float | None = None
     pack_name: str = Field(index=True)
