@@ -1,5 +1,7 @@
 # 🚨 Emergency Lang Kit (ELK)
 
+**Research prototype for multilingual emergency-call analysis.** The repository explores asynchronous audio ingestion, transcription adapters and structured incident extraction. It does not establish production readiness or validated real-world model performance.
+
 > **Asynchronous AI Kernel for Emergency Call Analysis**  \
 ![ELK Hero](https://github.com/rayantr06/emergency-lang-kit/raw/main/docs/img/elk_hero_dashboard.png)
 
@@ -17,9 +19,9 @@
 In high-stakes emergency situations, every second counts. Language barriers (dialects like Kabyle or Arabizi) and high call volume can cripple existing systems. 
 
 **ELK (Emergency Lang Kit)** is a modular, decentralized AI kernel designed to:
-1.  **Transcribe & Translate** complex multilingual emergency calls in real-time.
-2.  **Extract Intent** using schema-enforced LLM inference for 100% data reliability.
-3.  **Dispatch** structured intelligence to ERP/CAD systems via an asynchronous, resilient pipeline.
+1.  **Transcription & Translation**: experiment with multilingual audio-processing adapters.
+2.  **Structured Extraction**: validate model output against schemas. Schema validation checks format; it does not guarantee factual correctness or model accuracy.
+3.  **Integration**: explore asynchronous delivery of structured information through connectors and webhooks.
 
 > **"Decentralizing Emergency Intelligence to save lives through modular AI."**
 
@@ -38,7 +40,7 @@ Actions mises en place pour sécuriser et rendre l’ingestion plus robuste :
 
 ## 📐 Architecture
 
-ELK uses a state-of-the-art async pipeline to handle massive ingestion loads without blocking the main event loop.
+ELK implements an asynchronous ingestion pipeline with a FastAPI gateway, Redis queue and background workers. Throughput and production reliability require separate measurement and validation.
 
 ```mermaid
 graph LR
@@ -56,7 +58,7 @@ graph LR
 ```
 
 ### Key Components
-- **FastAPI Gateway**: stateless, high-performance ingestion layer.
+- **FastAPI Gateway**: stateless audio-ingestion API.
 - **Arq Workers**: Distributed task execution with built-in retry logic.
 - **SQLModel Orchestrator**: Real-time job state tracking and performance metrics.
 - **ELK Engine**: Multi-modal pipeline (Whisper + Gemini + RAG).
@@ -87,7 +89,7 @@ graph TD
     PACKS -- "Plugins Into" --> KERNEL
 ```
 
-### Processing Pipeline (Audio → Decision)
+### Processing Pipeline (Audio → Structured Information)
 
 ```mermaid
 graph LR
