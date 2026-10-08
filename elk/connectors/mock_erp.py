@@ -5,10 +5,10 @@ Useful for demos and testing without external dependencies.
 """
 
 import json
-import os
 import logging
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any
+
 from elk.connectors.base import BaseConnector
 
 logger = logging.getLogger(__name__)
@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 class MockERPConnector(BaseConnector):
     def __init__(self, log_file: str = "mock_erp_events.jsonl"):
         self.log_file = log_file
-        
-    async def push_incident(self, incident_data: Dict[str, Any]) -> bool:
+
+    async def push_incident(self, incident_data: dict[str, Any]) -> bool:
         """Simulate creating a ticket in the ERP."""
         payload = {
             "erp_timestamp": datetime.utcnow().isoformat(),
@@ -25,12 +25,12 @@ class MockERPConnector(BaseConnector):
             "source": "ELK_AI_AGENT",
             "data": incident_data
         }
-        
+
         try:
             # Atomic append (os agnostic enough for demo)
             with open(self.log_file, "a", encoding="utf-8") as f:
                 f.write(json.dumps(payload) + "\n")
-            
+
             logger.info(f"MockERP: Incident pushed to {self.log_file}")
             return True
         except Exception as e:

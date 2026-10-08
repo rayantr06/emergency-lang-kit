@@ -3,9 +3,11 @@ API Key authentication middleware.
 Enforces X-API-Key or Authorization: Bearer when settings.API_KEY is set.
 """
 
-from typing import Callable
-from fastapi import Request, HTTPException
+from collections.abc import Callable
+
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from elk.core.config import settings
 
 

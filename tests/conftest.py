@@ -1,8 +1,10 @@
 import pytest
 from fastapi.testclient import TestClient
+from sqlmodel import SQLModel
+
 from elk.api.app import app
 from elk.database.db import engine
-from sqlmodel import SQLModel
+
 
 class MockRedis:
     async def llen(self, key): return 0

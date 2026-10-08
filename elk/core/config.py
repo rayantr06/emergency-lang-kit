@@ -1,12 +1,14 @@
 import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     # App Info
     APP_NAME: str = "Emergency Lang Kit (ELK)"
     VERSION: str = "0.2.0"
     DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
-    
+
     # Infrastructure
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./elk_jobs.db")
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -38,7 +40,7 @@ class Settings(BaseSettings):
         "ALLOWED_HOSTS",
         "localhost,127.0.0.1,testserver"
     ).split(",")
-    
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 settings = Settings()
