@@ -3,10 +3,12 @@ Webhook Connector
 Pushes incidents to a configured HTTP endpoint (e.g., Zapier, n8n, Custom API).
 """
 
-import os
-import httpx
 import logging
-from typing import Dict, Any
+import os
+from typing import Any
+
+import httpx
+
 from elk.connectors.base import BaseConnector
 
 logger = logging.getLogger(__name__)
@@ -14,12 +16,12 @@ logger = logging.getLogger(__name__)
 class WebhookConnector(BaseConnector):
     def __init__(self, webhook_url: str = None):
         self.webhook_url = webhook_url or os.getenv("WEBHOOK_URL")
-        
-    async def push_incident(self, incident_data: Dict[str, Any]) -> bool:
+
+    async def push_incident(self, incident_data: dict[str, Any]) -> bool:
         if not self.webhook_url:
             logger.warning("WebhookConnector: No URL configured.")
             return False
-            
+
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.post(

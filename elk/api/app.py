@@ -4,18 +4,20 @@ Gateway for Emergency Call Analysis.
 Async-first architecture: Submits jobs to Redis/Arq workers.
 """
 
-import logging
 import asyncio
-from sqlalchemy import text
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from elk.api.schemas import HealthResponse, ProcessResponse, TranscribeRequest
-from elk.api.middleware import setup_production_middleware
-from elk.api.routes import router as job_router
-from elk.database.db import init_db, async_engine
-from elk.core.config import settings
-from elk.api.auth import APIKeyMiddleware
+import logging
+
 from arq import create_pool
 from arq.connections import RedisSettings
+from fastapi import FastAPI, HTTPException
+from sqlalchemy import text
+
+from elk.api.auth import APIKeyMiddleware
+from elk.api.middleware import setup_production_middleware
+from elk.api.routes import router as job_router
+from elk.api.schemas import HealthResponse, ProcessResponse, TranscribeRequest
+from elk.core.config import settings
+from elk.database.db import async_engine, init_db
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -79,14 +81,14 @@ async def health_check():
         dependencies["database"] = "up"
     except Exception:
         dependencies["database"] = "down"
-    
+
     # API Gateway doesn't manage models or cache - workers do
-    
+
     return HealthResponse(
         status="healthy",
         active_packs=["dz-kab-protection"],
         system_load=system_stats,
-        gpu_status={"role": "api-gateway", "available": False}, 
+        gpu_status={"role": "api-gateway", "available": False},
         loaded_models={"count": 0, "role": "api-gateway"},
         cache_stats={"role": "api-gateway"},
         dependencies=dependencies
@@ -100,6 +102,6 @@ async def process_call_legacy(request: TranscribeRequest):
     This endpoint is now a wrapper that blocks until job completion (not recommended).
     """
     raise HTTPException(
-        status_code=410, 
+        status_code=410,
         detail="Synchronous processing is deprecated. Please use POST /jobs."
     )
